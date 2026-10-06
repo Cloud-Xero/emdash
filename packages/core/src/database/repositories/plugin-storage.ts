@@ -37,10 +37,10 @@ import type {
 	ConditionalDeleteResult,
 } from "../../plugins/types.js";
 import { chunks, SQL_BATCH_SIZE } from "../../utils/chunks.js";
-import { pluginDataWriteExpr, pluginDataUpdateGuard } from "../dialect-helpers.js";
+import { isPostgres, pluginDataWriteExpr, pluginDataUpdateGuard } from "../dialect-helpers.js";
 import { withTransaction } from "../transaction.js";
 import type { Database } from "../types.js";
-import { encodeCursor, decodeCursor } from "./types.js";
+import { encodeCursor, decodeCursor, InvalidCursorError, type SortFieldBoundary } from "./types.js";
 
 /**
  * SQLSTATEs a losing concurrent `updateIf` writer can abort with.
@@ -112,6 +112,41 @@ function rawWhereExpr(sqlText: string, params: unknown[]): RawBuilder<boolean> {
  */
 function nullRank(expr: RawBuilder<unknown>): RawBuilder<number> {
 	return sql`(case when ${expr} is null then 1 else 0 end)`;
+}
+
+/**
+ * Comparison value for an orderBy cursor, matching the type of the ordered
+ * JSON expression.
+ *
+ * On Postgres the order expression is jsonb, so non-missing cursor values are
+ * cast to jsonb. This is important for explicit JSON `null`: the bound value
+ * must be the jsonb `null` scalar, not SQL NULL, because Postgres
+ * `data::jsonb->'field'` returns jsonb `null` for an explicit null and SQL NULL
+ * for a missing key. SQLite extracts SQL NULL for both cases, so a missing
+ * boundary and an explicit null both bind SQL NULL.
+ */
+function cursorFieldValue(db: Kysely<Database>, boundary: SortFieldBoundary): RawBuilder<unknown> {
+	if (boundary.missing) {
+		return sql`null`;
+	}
+	if (isPostgres(db)) {
+		return sql`${sql.val(JSON.stringify(boundary.value))}::jsonb`;
+	}
+	return sql.val(boundary.value);
+}
+
+function isRecord(value: unknown): value is Record<string, unknown> {
+	return typeof value === "object" && value !== null && !Array.isArray(value);
+}
+
+function sortBoundaries(data: unknown, orderFields: string[]): SortFieldBoundary[] {
+	const record = isRecord(data) ? data : undefined;
+	return orderFields.map((field) => {
+		if (record !== undefined && Object.hasOwn(record, field)) {
+			return { value: record[field], missing: false };
+		}
+		return { missing: true };
+	});
 }
 
 export class PluginStorageRepository<T = unknown> implements StorageCollection<T> {
@@ -403,15 +438,36 @@ export class PluginStorageRepository<T = unknown> implements StorageCollection<T
 					);
 				}
 				const op = descending ? sql`<` : sql`>`;
-				// The cursor row's sort values, recomputed with the same expression
-				// rather than carried in the cursor, so nothing is bound as a literal
-				// and neither dialect has to coerce a JSON value to compare it.
+				const cursorSortValues = decoded.sortValues;
+
+				// New cursors carry the ordered field values so paging survives deletion
+				// of the anchor row. Legacy cursors fall back to re-reading the anchor;
+				// if it has been deleted we can no longer compute the seek boundary, so
+				// we surface a clear error instead of returning a wrong page.
+				const useCursorValues =
+					cursorSortValues !== undefined && cursorSortValues.length === orderEntries.length;
+
 				const cursorExpr = (field: string): RawBuilder<unknown> =>
 					sql`(select ${sql.raw(jsonOrderExtract(this.db, field))} from _plugin_storage where plugin_id = ${this.pluginId} and collection = ${this.collection} and id = ${decoded.id})`;
 
-				const fields = orderEntries.map(([field]) => {
+				if (!useCursorValues) {
+					const anchorExists = await this.db
+						.selectFrom("_plugin_storage")
+						.select(sql`1`.as("one"))
+						.where("plugin_id", "=", this.pluginId)
+						.where("collection", "=", this.collection)
+						.where("id", "=", decoded.id)
+						.executeTakeFirst();
+					if (!anchorExists) {
+						throw new InvalidCursorError(cursor);
+					}
+				}
+
+				const fields = orderEntries.map(([field], index) => {
 					const own = sortExpr(field);
-					const theirs = cursorExpr(field);
+					const theirs = useCursorValues
+						? cursorFieldValue(this.db, cursorSortValues[index])
+						: cursorExpr(field);
 					return {
 						equal: sql`(${nullRank(own)} = ${nullRank(theirs)} and (${nullRank(own)} = 1 or ${own} = ${theirs}))`,
 						after: sql`(${nullRank(own)} ${op} ${nullRank(theirs)} or (${nullRank(own)} = ${nullRank(theirs)} and ${nullRank(own)} = 0 and ${own} ${op} ${theirs}))`,
@@ -466,7 +522,15 @@ export class PluginStorageRepository<T = unknown> implements StorageCollection<T
 		if (hasMore) {
 			const lastItem = rows[limit - 1];
 			if (lastItem) {
-				nextCursor = encodeCursor(lastItem.created_at, lastItem.id);
+				let sortValues: SortFieldBoundary[] | undefined;
+				if (orderEntries.length > 0) {
+					const parsed: unknown = JSON.parse(lastItem.data);
+					sortValues = sortBoundaries(
+						parsed,
+						orderEntries.map(([field]) => field),
+					);
+				}
+				nextCursor = encodeCursor(lastItem.created_at, lastItem.id, sortValues);
 			}
 		}
 
