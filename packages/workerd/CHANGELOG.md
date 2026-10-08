@@ -1,5 +1,12 @@
 # @emdash-cms/sandbox-workerd
 
+## 0.9.4
+
+### Patch Changes
+
+- Updated dependencies [[`291e0f8`](https://github.com/emdash-cms/emdash/commit/291e0f8b5fef4e8ab81635076572499b8a6d0f81), [`57e6507`](https://github.com/emdash-cms/emdash/commit/57e6507be57829af3eca45d095cf813b0e22eb11), [`8e1e849`](https://github.com/emdash-cms/emdash/commit/8e1e849159e53fbd962e3810555d8ab9f43f56ed), [`dd983cd`](https://github.com/emdash-cms/emdash/commit/dd983cdb26e91435be750226797cccc93c4b90e8), [`24d5ea4`](https://github.com/emdash-cms/emdash/commit/24d5ea4bda6d7f002de8ce8344e2c12aee0d49b5), [`2652774`](https://github.com/emdash-cms/emdash/commit/2652774d50a341392f26d69ed020528b1d92d7e8), [`ecbd1ff`](https://github.com/emdash-cms/emdash/commit/ecbd1ffadc802b005e67febbac6b78c023c5985b), [`2ccc645`](https://github.com/emdash-cms/emdash/commit/2ccc6451c68b9be97986cce73ced9e05db84bcbb), [`b60ec26`](https://github.com/emdash-cms/emdash/commit/b60ec26841116b539bad3f73a4de024813cd3c33), [`57e6507`](https://github.com/emdash-cms/emdash/commit/57e6507be57829af3eca45d095cf813b0e22eb11), [`b358838`](https://github.com/emdash-cms/emdash/commit/b3588388aa496e4e76dd7c486fd5860171749050)]:
+  - emdash@1.2.1
+
 ## 0.9.3
 
 ### Patch Changes

@@ -1,5 +1,39 @@
 # @emdash-cms/admin
 
+## 1.2.1
+
+### Patch Changes
+
+- [#4012](https://github.com/emdash-cms/emdash/pull/4012) [`e8bd98e`](https://github.com/emdash-cms/emdash/commit/e8bd98e6267856d606a24d4387d40081557c2474) Thanks [@khoinguyenpham04](https://github.com/khoinguyenpham04)! - Fixes blocks fields overflowing the content editor on phone-width screens. A long block summary made every block card wider than the screen, which pushed the Add block, Duplicate and Delete buttons out of reach and clipped the block's inputs. Cards now fit the screen. A long summary ends with an ellipsis, and a long one-word block type name wraps. A cut-off summary also shows its first words when its text and the admin language read in different directions, such as English content in the Arabic admin.
+
+- [#3970](https://github.com/emdash-cms/emdash/pull/3970) [`983c08c`](https://github.com/emdash-cms/emdash/commit/983c08c743e0a85447b268c3f10e112fbb1f6566) Thanks [@marcin-misiewicz-pl](https://github.com/marcin-misiewicz-pl)! - Completes the Polish (`pl`) admin translation. Polish admins now see localized text across the whole admin, including the publishing calendar, the editor, the Change domain dialog, bylines, relations, site transfer, backups, the plugin registry, and passkey setup. Previously, 2,255 of 3,384 strings fell back to English. Existing Polish strings now use consistent terminology: „witryna” for site, „wersja” for revision, and „klucz dostępu” for passkey, matching the wording Polish users see in Apple, Google, and Windows system prompts. Four strings that displayed a stray `msgstr` prefix are also fixed.
+
+- [#4006](https://github.com/emdash-cms/emdash/pull/4006) [`d4e0af9`](https://github.com/emdash-cms/emdash/commit/d4e0af9030920b109d410634fa712c2ba102e097) Thanks [@khoinguyenpham04](https://github.com/khoinguyenpham04)! - Fixes the content editor sliding up under the admin header after you open an entry by clicking a field on the site in edit mode. The editor's top bar was cut off, a blank strip appeared at the bottom, and scrolling could not bring the bar back.
+
+- [#4015](https://github.com/emdash-cms/emdash/pull/4015) [`302e011`](https://github.com/emdash-cms/emdash/commit/302e011a8470246e8070914d89ff058013b8ca81) Thanks [@khoinguyenpham04](https://github.com/khoinguyenpham04)! - Fixes the Arabic item count shown beside repeater fields and unregistered database tables. Counts such as 0, 1, 2 and 100 crashed the content editor or the Content Types page, and other counts showed raw message text. Also fixes the Turkish field count in the content type editor, which left out the word "alan".
+
+- [#4031](https://github.com/emdash-cms/emdash/pull/4031) [`3511069`](https://github.com/emdash-cms/emdash/commit/3511069a26ee1b41575372dc0ea0d6146d4e1289) Thanks [@emdashbot](https://github.com/apps/emdashbot)! - Fixes clearing an existing taxonomy term description in the admin so the saved value is removed instead of preserved.
+  
+  Editing a tag, category, or custom taxonomy term and deleting the optional Description text now sends `description: ""` in the update request, so the server clears the stored value. Previously the empty field was converted to `undefined` and dropped from the request body, leaving the previous description in place.
+
+- [#3934](https://github.com/emdash-cms/emdash/pull/3934) [`58ac71c`](https://github.com/emdash-cms/emdash/commit/58ac71c698d07b558ca5e4b13a0b6bfe40e7a92b) Thanks [@tomislavcf](https://github.com/tomislavcf)! - Adds Croatian (`hr`) admin translation. Croatian admins now see localized text across all admin UI areas including the editor, media library, publishing calendar, settings, authentication, plugin registry, and capability consent dialogs. Translation covers ~99% of strings (3,291 of ~3,322) with correct ICU plural forms (`one`, `few`, `other`).
+
+- [#3954](https://github.com/emdash-cms/emdash/pull/3954) [`15bbfd7`](https://github.com/emdash-cms/emdash/commit/15bbfd7da186f82083454e408434407979a05190) Thanks [@Zahid09987](https://github.com/Zahid09987)! - Updates Indonesian (`id`) translations in the admin UI.
+
+- [#3961](https://github.com/emdash-cms/emdash/pull/3961) [`e0363c3`](https://github.com/emdash-cms/emdash/commit/e0363c3c68364eb1727f10f285b7a988206788c7) Thanks [@Zahid09987](https://github.com/Zahid09987)! - Updates Indonesian (`id`) translations in the admin UI.
+
+- [#3926](https://github.com/emdash-cms/emdash/pull/3926) [`0861e24`](https://github.com/emdash-cms/emdash/commit/0861e24be3f5b538fc44218a79dfc7e818f5709e) Thanks [@danielmlr](https://github.com/danielmlr)! - Fixes the error message shown when publishing, unpublishing, scheduling, unscheduling, or discarding changes fails without a server message, so it follows the admin language instead of staying in English. Most other admin requests that fail without a server message also no longer append an English HTTP status text such as "Internal Server Error" to their error message.
+
+- [#3791](https://github.com/emdash-cms/emdash/pull/3791) [`dd983cd`](https://github.com/emdash-cms/emdash/commit/dd983cdb26e91435be750226797cccc93c4b90e8) Thanks [@DiogoDuart3](https://github.com/DiogoDuart3)! - Fixes two problems with number fields in the content editor. Clearing a number field now saves it as empty instead of `0`, which previously failed a field's minimum (such as `min: 1`) or silently stored zero. Decimal values such as `4.50` no longer block the Save button with the browser's "nearest valid values" message, while `integer` fields keep stepping in whole numbers.
+
+- [#4026](https://github.com/emdash-cms/emdash/pull/4026) [`7659466`](https://github.com/emdash-cms/emdash/commit/7659466b1a3ba1756e81692a6438f1186a461898) Thanks [@MarioCerulo](https://github.com/MarioCerulo)! - Adds a first Italian (it) admin catalog for the setup wizard and sign-in screens. Italian is not selectable in the language picker yet.
+
+- [#3977](https://github.com/emdash-cms/emdash/pull/3977) [`d4efb97`](https://github.com/emdash-cms/emdash/commit/d4efb97541e796bc02f90da15ceb3ca4c1c31895) Thanks [@kegren](https://github.com/kegren)! - Translates the Swedish admin strings added since 1.1, including the redesigned content editor, video blocks, the publishing calendar, scheduled changes and the domain move flow.
+
+- [#3936](https://github.com/emdash-cms/emdash/pull/3936) [`0e8811d`](https://github.com/emdash-cms/emdash/commit/0e8811d6f46fa88b09f2a46c7c1513fbb8cbc7cf) Thanks [@khoinguyenpham04](https://github.com/khoinguyenpham04)! - Updates `/video`, and **Video** in the add-block menu, to open the video picker first, as `/image` does. The video block is added once you choose a video, and closing the picker adds nothing. A video block saved without a video, such as one left empty by an earlier version, shows as unplayable, with **Replace video** to choose one and **Delete video** to remove it. Blocks chosen from a picker opened by the add-block menu also stay where the menu was if an upload finishes while the picker is open.
+- Updated dependencies []:
+  - @emdash-cms/blocks@1.2.1
+
 <!-- emdash-changelog-archive: ./changelog/0.16.0-to-0.38.0.md -->
 
 ## 1.2.0
